@@ -59,12 +59,14 @@
                         <div class="banner-slide left rounded-xl overflow-hidden shadow-lg cursor-pointer" data-index="2">
                             <img src="https://placehold.co/700x477" alt class="w-full h-full object-cover block">
                         </div>
+                       
                     </div>
                 </div>
                 <div class="banner-pagination flex justify-center gap-[12px] mt-[20px]" id="bannerPagination">
                     <div class="banner-dot active w-[48px] h-1 rounded-md bg-purple-600 cursor-pointer transition-all duration-300" data-index="0"></div>
                     <div class="banner-dot w-[48px] h-1 rounded-md bg-gray-300 cursor-pointer transition-all duration-300" data-index="1"></div>
                     <div class="banner-dot w-[48px] h-1 rounded-md bg-gray-300 cursor-pointer transition-all duration-300" data-index="2"></div>
+
                 </div>
             </div>
 
@@ -323,25 +325,65 @@
                 });
             });
 
-            let touchStartX = 0;
+            let dragStartX = 0;
+            let isDragging = false;
+            const carousel = document.querySelector('.banner-carousel');
             const wrap = document.getElementById('bannerWrap');
-            if (wrap) {
-                wrap.addEventListener('touchstart', function(e) {
-                    touchStartX = e.touches[0].clientX;
-                });
-                wrap.addEventListener('touchend', function(e) {
-                    const diff = touchStartX - e.changedTouches[0].clientX;
-                    if (Math.abs(diff) > 50) {
-                        if (diff > 0) {
-                            nextSlide();
-                        } else {
-                            currentIndex = (currentIndex - 1 + TOTAL) % TOTAL;
-                            renderCarousel();
-                            resetTimer();
+
+            function setupDrag() {
+                if (carousel) {
+                    carousel.addEventListener('mousedown', function(e) {
+                        dragStartX = e.clientX;
+                        isDragging = true;
+                        carousel.style.cursor = 'grabbing';
+                        e.preventDefault();
+                    });
+
+                    document.addEventListener('mousemove', function(e) {
+                        if (!isDragging) return;
+                        e.preventDefault();
+                    });
+
+                    document.addEventListener('mouseup', function(e) {
+                        if (!isDragging) return;
+                        isDragging = false;
+                        carousel.style.cursor = 'grab';
+
+                        const diff = dragStartX - e.clientX;
+                        if (Math.abs(diff) > 50) {
+                            if (diff > 0) {
+                                nextSlide();
+                            } else {
+                                currentIndex = (currentIndex - 1 + TOTAL) % TOTAL;
+                                renderCarousel();
+                                resetTimer();
+                            }
                         }
-                    }
-                });
+                    });
+
+                    carousel.style.cursor = 'grab';
+                }
+
+                if (wrap) {
+                    wrap.addEventListener('touchstart', function(e) {
+                        dragStartX = e.touches[0].clientX;
+                    });
+                    wrap.addEventListener('touchend', function(e) {
+                        const diff = dragStartX - e.changedTouches[0].clientX;
+                        if (Math.abs(diff) > 50) {
+                            if (diff > 0) {
+                                nextSlide();
+                            } else {
+                                currentIndex = (currentIndex - 1 + TOTAL) % TOTAL;
+                                renderCarousel();
+                                resetTimer();
+                            }
+                        }
+                    });
+                }
             }
+
+            setupDrag();
 
             renderCarousel();
             resetTimer();
